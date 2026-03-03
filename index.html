@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/png" href="./medias/birthday-cake.png" />
+    <title>Happy Birthday Jedny!</title>
+
+    <script>
+      let vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    </script>
+
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <h1>Loading...</h1>
+    </div>
+
+    <div id="gameArea">
+      <div class="clouds-container">
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+        <div class="cloud cloud3"></div>
+        <div class="cloud cloud4"></div>
+      </div>
+
+      <audio id="backgroundMusic" src="./medias/bgm.mp3" preload="auto"></audio>
+
+      <img
+        src="./medias/gifs/dance1.gif"
+        class="dance-gif"
+        id="dance1"
+        alt="Dancing GIF 1"
+      />
+      <img
+        src="./medias/gifs/dance2.gif"
+        class="dance-gif"
+        id="dance2"
+        alt="Dancing GIF 2"
+      />
+      <img
+        src="./medias/gifs/dance3.gif"
+        class="dance-gif"
+        id="dance3"
+        alt="Dancing GIF 3"
+      />
+      <img
+        src="./medias/gifs/dance4.gif"
+        class="dance-gif"
+        id="dance4"
+        alt="Dancing GIF 4"
+      />
+
+      <h3 id="score">Score: 0</h3>
+      <h3 id="timer">Party starts in<br />68 seconds!</h3>
+      <h4 id="reaction"></h4>
+
+      <img src="./medias/jedny.png" alt="Jedny Peeking" id="peeking-friend" />
+      <img
+        src="./medias/jedny.png"
+        alt="Flying Jedny"
+        class="player-bird"
+        id="player"
+      />
+
+      <div class="title">
+        <div id="start-text" style="text-align: left">
+          <h3>Help Jedny collect her favorite foods!</h3>
+          <ul>
+            <li>Tap to fly up!</li>
+            <li>Grab foods she likes, avoid the one she hates!</li>
+          </ul>
+        </div>
+
+        <img src="./medias/birthday-cake.png" alt="Birthday Cake" id="cake" />
+        <h1 id="end-text-1">HAPPY BIRTHDAY, JEDNY!</h1>
+        <h3 id="end-text-2">
+          May your day be filled with all your favorite things
+        </h3>
+        <h3 id="end-text-3">Vondami komai daw</h3>
+
+        <button id="start" class="start-button">Start</button>
+      </div>
+    </div>
+
+    <script src="script.js" type="module"></script>
+  </body>
+</html>

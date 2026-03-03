@@ -1,0 +1,269 @@
+/* --- FONTS & BASE SETUP --- */
+@font-face {
+  font-family: "SuperShiny";
+  src: url("./medias/SuperShiny.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: "SuperShiny";
+  letter-spacing: 2px;
+  background: #f9f2fa; /* Soft purple-white */
+  /* Crucial for games: prevents text highlighting and zooming on rapid tapping */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+h3 {
+  font-weight: normal;
+  margin: 0;
+}
+
+/* --- UI ELEMENTS --- */
+h4 {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.3;
+  font-size: 2rem;
+  z-index: 10;
+  pointer-events: none; /* Ensures reaction text doesn't block taps */
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #fcf5ee;
+  text-align: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid black;
+  padding: 20px;
+  border-radius: 20px;
+  z-index: 100;
+  max-width: 90%; /* Keeps it looking good on narrow phone screens */
+  box-sizing: border-box;
+}
+
+ul {
+  padding: 15px;
+  margin: 0;
+}
+
+button {
+  font-family: "SuperShiny";
+  font-size: 2rem;
+  padding: 8px 16px;
+  background-color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.1s ease; /* Smooth button animations */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 2px solid #ccc;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+#score {
+  display: none;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+  z-index: 10;
+}
+
+#timer {
+  text-align: center;
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+  z-index: 10;
+}
+
+#loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  background: #f9f2fa;
+}
+
+/* --- GAME AREA & ENTITIES --- */
+#gameArea {
+  display: none;
+  position: relative;
+  width: 100%;
+  height: calc(100vh);
+  height: calc(var(--vh, 1vh) * 100);
+  background: #f9f2fa;
+  transition: background-color 2s ease; /* Smooth fade effect */
+  overflow: hidden;
+}
+
+.player-bird {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  left: 10%;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+}
+
+#peeking-friend {
+  position: fixed;
+  rotate: -45deg;
+  bottom: 25%;
+  right: 0;
+  transform: translateX(100px);
+  transition: 250ms;
+  width: 80px;
+  z-index: 101;
+}
+
+.object {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  z-index: 4;
+}
+
+/* --- CLOUD BACKGROUND SETTINGS --- */
+.clouds-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.cloud {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50px;
+  position: absolute;
+  width: 150px;
+  height: 50px;
+  box-shadow: 0 8px 5px rgba(0, 0, 0, 0.05);
+  will-change: left; /* Tells browser to optimize this animation */
+}
+
+.cloud::after,
+.cloud::before {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: -1;
+}
+
+.cloud::after {
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  top: -25px;
+  left: 25px;
+}
+
+.cloud::before {
+  width: 70px;
+  height: 70px;
+  border-radius: 100px;
+  top: -35px;
+  right: 25px;
+}
+
+.cloud1 {
+  top: 15%;
+  animation: floatClouds 25s linear infinite;
+  transform: scale(0.8);
+  opacity: 0.8;
+}
+
+.cloud2 {
+  top: 40%;
+  animation: floatClouds 35s linear infinite;
+  transform: scale(1.2);
+}
+
+.cloud3 {
+  top: 70%;
+  animation: floatClouds 20s linear infinite;
+  transform: scale(0.6);
+  opacity: 0.6;
+}
+
+.cloud4 {
+  top: 85%;
+  animation: floatClouds 40s linear infinite;
+  transform: scale(1);
+  opacity: 0.9;
+}
+
+@keyframes floatClouds {
+  0% {
+    left: 100%;
+  }
+  100% {
+    left: -300px;
+  }
+}
+
+/* --- ENDING GIFS & DIALOGS --- */
+.dance-gif {
+  position: fixed;
+  width: 144px;
+  height: 144px;
+  display: none;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#dance1 {
+  top: 10%;
+  left: 10%;
+}
+#dance2 {
+  top: 10%;
+  right: 10%;
+}
+#dance3 {
+  bottom: 10%;
+  left: 10%;
+}
+#dance4 {
+  bottom: 10%;
+  right: 10%;
+}
+
+#cake,
+#end-text-1,
+#end-text-2,
+#end-text-3 {
+  display: none;
+}
