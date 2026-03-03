@@ -67,6 +67,7 @@ objects.forEach((object) => {
 startButton.addEventListener("click", () => {
   if (gameActive) return; // Prevents double-clicking bugs
   startButton.disabled = true; // Disable button immediately
+  startButton.blur(); // Removes focus so Spacebar doesn't click it again!
   backgroundMusic.play();
   startGame();
 });
@@ -78,7 +79,10 @@ function flap() {
   }
 }
 
+// 1. Mouse Click
 document.addEventListener("mousedown", flap);
+
+// 2. Mobile Touch
 document.addEventListener(
   "touchstart",
   (e) => {
@@ -90,6 +94,17 @@ document.addEventListener(
   },
   { passive: false },
 );
+
+// 3. Spacebar (PC)
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") {
+    e.preventDefault(); // Prevents the browser from scrolling down
+    if (!e.repeat) {
+      // Prevents rapid firing if they hold the key down
+      flap();
+    }
+  }
+});
 
 // --- GAME LOGIC ---
 function spawnObject() {
