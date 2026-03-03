@@ -33,16 +33,13 @@ let activeObjects = [];
 // Timers & Intervals
 let spawnInterval;
 let timerInterval;
-let reactionTimeout;
+let reactionTimeout; // Prevents reaction text from disappearing too fast if multiple items are grabbed
 
-// Physics & Controls
+// Physics
 let playerY = window.innerHeight / 2;
 let velocity = 0;
-let isFlapping = false; // Tracks if the player is holding the button
 const gravity = 0.4;
-const jumpStrength = -7; // Initial boost when tapped
-const liftThrust = 0.8; // Continuous upward push while held
-const maxSpeed = 8; // Prevents flying up or falling down too fast
+const jumpStrength = -7;
 
 // --- INITIALIZATION & ASSETS ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -50,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (gameArea) gameArea.style.display = "block";
 });
 
+// Jedny's favorite and least favorite items!
 const objects = [
   ["./medias/objects/beef.png", 10],
   ["./medias/objects/noodles.png", 10],
@@ -59,6 +57,7 @@ const objects = [
   ["./medias/objects/strawberry.png", -10],
 ];
 
+// Preload images to prevent stuttering
 objects.forEach((object) => {
   const img = new Image();
   img.src = object[0];
@@ -66,56 +65,31 @@ objects.forEach((object) => {
 
 // --- EVENT LISTENERS ---
 startButton.addEventListener("click", () => {
-  if (gameActive) return;
-  startButton.disabled = true;
+  if (gameActive) return; // Prevents double-clicking bugs
+  startButton.disabled = true; // Disable button immediately
   backgroundMusic.play();
-
-  // Remove focus from start button so pressing Spacebar later doesn't click it again
-  startButton.blur();
-
   startGame();
 });
 
-// JETPACK / FLAP CONTROLS
-function startFlap() {
-  if (!gameActive) return;
-  isFlapping = true;
-  velocity = jumpStrength; // Gives a nice punchy boost the moment you press
+// Flap Mechanic
+function flap() {
+  if (gameActive) {
+    velocity = jumpStrength;
+  }
 }
 
-function stopFlap() {
-  isFlapping = false;
-}
-
-// 1. Mouse Controls
-document.addEventListener("mousedown", startFlap);
-document.addEventListener("mouseup", stopFlap);
-
-// 2. Touch Controls (Mobile)
+document.addEventListener("mousedown", flap);
 document.addEventListener(
   "touchstart",
   (e) => {
+    // Prevent default only if clicking on the game area (keeps buttons clickable)
     if (e.target !== startButton) {
       e.preventDefault();
-      startFlap();
+      flap();
     }
   },
   { passive: false },
 );
-document.addEventListener("touchend", stopFlap);
-
-// 3. Keyboard Controls (Spacebar)
-document.addEventListener("keydown", (e) => {
-  if (e.code === "Space") {
-    e.preventDefault(); // Stops the page from scrolling down
-    if (!e.repeat) startFlap(); // Ignores the "held down" repeat key trigger
-  }
-});
-document.addEventListener("keyup", (e) => {
-  if (e.code === "Space") {
-    stopFlap();
-  }
-});
 
 // --- GAME LOGIC ---
 function spawnObject() {
@@ -141,16 +115,8 @@ function spawnObject() {
 function gameLoop() {
   if (!gameActive) return;
 
-  // 1. Apply Jetpack Thrust & Gravity
-  if (isFlapping) {
-    velocity -= liftThrust; // Pushes player up while holding
-  }
-  velocity += gravity; // Gravity always pulls down
-
-  // Enforce speed limits so gameplay stays smooth
-  if (velocity < -maxSpeed) velocity = -maxSpeed;
-  if (velocity > maxSpeed) velocity = maxSpeed;
-
+  // 1. Apply Gravity
+  velocity += gravity;
   playerY += velocity;
 
   // 2. Floor and Ceiling bounds
@@ -173,6 +139,7 @@ function gameLoop() {
     const playerRect = player.getBoundingClientRect();
     const objRect = obj.el.getBoundingClientRect();
 
+    // Hit detection
     if (
       playerRect.left < objRect.right &&
       playerRect.right > objRect.left &&
@@ -182,8 +149,9 @@ function gameLoop() {
       score += obj.value;
       scoreElement.textContent = `Score: ${score}`;
 
+      // Handle the text reaction gracefully
       reaction.textContent = obj.value > 0 ? "YUMMY!" : "EWW!";
-      clearTimeout(reactionTimeout);
+      clearTimeout(reactionTimeout); // Clear old timeout if they grab 2 things fast
       reactionTimeout = setTimeout(() => (reaction.textContent = ""), 500);
 
       obj.el.remove();
@@ -192,6 +160,7 @@ function gameLoop() {
       continue;
     }
 
+    // Remove if off-screen
     if (obj.x < -50) {
       obj.el.remove();
       activeObjects.splice(i, 1);
@@ -215,6 +184,7 @@ function startGame() {
   gameLoop();
   spawnInterval = setInterval(spawnObject, 800);
 
+  // Background Color Timeline
   const colors = [
     ["#f3e5f5", 18000],
     ["#e1bee7", 34000],
@@ -228,11 +198,13 @@ function startGame() {
     }, color[1]);
   });
 
+  // Countdown Timer
   timerInterval = setInterval(() => {
     time > 0 ? (time -= 1) : (timerElement.style.display = "none");
     timerElement.innerHTML = `Party starts in<br>${time} seconds`;
   }, 1000);
 
+  // Dancing Gifs Timeline
   setTimeout(() => {
     dance1.style.display = "inline";
   }, 69000);
@@ -246,13 +218,14 @@ function startGame() {
     dance4.style.display = "inline";
   }, 75000);
 
+  // End Game Sequence
   setTimeout(() => {
     gameActive = false;
-    isFlapping = false; // Reset controls
     clearInterval(spawnInterval);
-    clearInterval(timerInterval);
+    clearInterval(timerInterval); // Stop the timer loop!
     player.style.display = "none";
 
+    // Clear remaining screen objects
     activeObjects.forEach((obj) => obj.el.remove());
     activeObjects = [];
 
@@ -281,7 +254,6 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     clearInterval(spawnInterval);
     backgroundMusic.pause();
-    isFlapping = false; // Prevents her from flying into the ceiling if they alt-tab while holding space
   } else {
     if (gameActive) {
       spawnInterval = setInterval(spawnObject, 800);
