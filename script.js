@@ -39,9 +39,17 @@ let velocity = 0;
 const gravity = 0.4;
 const jumpStrength = -7;
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (loading) loading.style.display = "none";
-  if (gameArea) gameArea.style.display = "block";
+//document.addEventListener("DOMContentLoaded", () => {
+//if (loading) loading.style.display = "none";
+//if (gameArea) gameArea.style.display = "block";
+//});
+
+// NEW: Waits for HTML, Images, AND Fonts to finish loading before starting!
+window.addEventListener("load", () => {
+  document.fonts.ready.then(() => {
+    if (loading) loading.style.display = "none";
+    if (gameArea) gameArea.style.display = "block";
+  });
 });
 
 const objects = [

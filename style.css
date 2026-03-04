@@ -1,15 +1,19 @@
 /* --- FONTS & BASE SETUP --- */
+/* --- FONTS & BASE SETUP --- */
 @font-face {
   font-family: "SuperShiny";
   src: url("./medias/SuperShiny.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
+  font-display: swap; /* Tells the browser to show the fallback font immediately while SuperShiny downloads */
 }
 
 body {
   margin: 0;
   overflow: hidden;
-  font-family: "SuperShiny", sans-serif;
+  /* Added chunky, playful fallback fonts just in case! */
+  font-family:
+    "SuperShiny", "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
   letter-spacing: 2px;
   background: #f9f2fa;
   user-select: none;
