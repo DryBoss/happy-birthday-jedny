@@ -39,19 +39,25 @@ let velocity = 0;
 const gravity = 0.4;
 const jumpStrength = -7;
 
-//document.addEventListener("DOMContentLoaded", () => {
-//if (loading) loading.style.display = "none";
-//if (gameArea) gameArea.style.display = "block";
-//});
+// --- FAILSAFE LOADING SCREEN ---
+document.addEventListener("DOMContentLoaded", () => {
+  let hasLoaded = false;
 
-// NEW: Waits for HTML, Images, AND Fonts to finish loading before starting!
-window.addEventListener("load", () => {
-  document.fonts.ready.then(() => {
+  function finishLoading() {
+    if (hasLoaded) return; // Prevents running twice
+    hasLoaded = true;
     if (loading) loading.style.display = "none";
     if (gameArea) gameArea.style.display = "block";
-  });
+  }
+
+  // 1. Wait for the custom font to be ready
+  document.fonts.ready.then(finishLoading);
+
+  // 2. FAILSAFE: If the network is too slow, force the game to open after 2 seconds!
+  setTimeout(finishLoading, 2000);
 });
 
+// --- GAME ASSETS ---
 const objects = [
   ["./medias/objects/beef.png", 10],
   ["./medias/objects/noodles.png", 10],
@@ -66,6 +72,7 @@ objects.forEach((object) => {
   img.src = object[0];
 });
 
+// --- EVENT LISTENERS ---
 startButton.addEventListener("click", () => {
   if (gameActive) return;
   startButton.disabled = true;
