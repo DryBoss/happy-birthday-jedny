@@ -1,17 +1,15 @@
 /* --- FONTS & BASE SETUP --- */
-/* --- FONTS & BASE SETUP --- */
 @font-face {
   font-family: "SuperShiny";
   src: url("./medias/SuperShiny.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
-  font-display: swap; /* Tells the browser to show the fallback font immediately while SuperShiny downloads */
+  font-display: swap;
 }
 
 body {
   margin: 0;
   overflow: hidden;
-  /* Added chunky, playful fallback fonts just in case! */
   font-family:
     "SuperShiny", "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
   letter-spacing: 2px;
@@ -83,7 +81,7 @@ h4 {
   padding: 40px;
   text-align: center;
 
-  /* FIXED CENTERING: Uses margins instead of transform so animations don't break it */
+  /* FIXED CENTERING */
   position: fixed;
   top: 0;
   bottom: 0;
@@ -154,7 +152,7 @@ button:active {
   color: #ba68c8;
 }
 
-/* --- GAME AREA & ENTITIES --- */
+/* --- GAME AREA & ENTITIES (WITH GPU ACCELERATION) --- */
 #gameArea {
   display: none;
   position: relative;
@@ -171,10 +169,10 @@ button:active {
   width: 60px;
   height: 60px;
   left: 10%;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0; /* Crucial for JS transforms */
   z-index: 5;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+  will-change: transform; /* Hardware acceleration */
 }
 
 #peeking-friend {
@@ -193,8 +191,11 @@ button:active {
   position: absolute;
   width: 45px;
   height: 45px;
+  top: 0; /* Crucial for JS transforms */
+  left: 0; /* Crucial for JS transforms */
   z-index: 4;
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.1));
+  will-change: transform; /* Hardware acceleration */
 }
 
 /* --- CLOUD BACKGROUND SETTINGS --- */
@@ -282,7 +283,7 @@ button:active {
   width: 144px;
   height: 144px;
   display: none;
-  z-index: 999; /* Pushed to the very top! */
+  z-index: 999;
   pointer-events: none;
 }
 

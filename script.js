@@ -40,24 +40,23 @@ const gravity = 0.4;
 const jumpStrength = -7;
 
 // --- FAILSAFE LOADING SCREEN ---
-document.addEventListener("DOMContentLoaded", () => {
-  let hasLoaded = false;
+window.addEventListener("load", () => {
+  // Set initial player position using GPU transform
+  player.style.transform = `translateY(${playerY}px)`;
 
+  let hasLoaded = false;
   function finishLoading() {
-    if (hasLoaded) return; // Prevents running twice
+    if (hasLoaded) return;
     hasLoaded = true;
     if (loading) loading.style.display = "none";
     if (gameArea) gameArea.style.display = "block";
   }
 
-  // 1. Wait for the custom font to be ready
   document.fonts.ready.then(finishLoading);
-
-  // 2. FAILSAFE: If the network is too slow, force the game to open after 2 seconds!
-  setTimeout(finishLoading, 2000);
+  setTimeout(finishLoading, 2000); // 2-second failsafe
 });
 
-// --- GAME ASSETS ---
+// --- GAME ASSETS (Anti-Pop-in Fix) ---
 const objects = [
   ["./medias/objects/beef.png", 10],
   ["./medias/objects/noodles.png", 10],
@@ -67,9 +66,12 @@ const objects = [
   ["./medias/objects/strawberry.png", -10],
 ];
 
+// Storing the image objects in an array prevents the browser from garbage-collecting them!
+const preloadedImages = [];
 objects.forEach((object) => {
   const img = new Image();
   img.src = object[0];
+  preloadedImages.push(img);
 });
 
 // --- EVENT LISTENERS ---
@@ -98,6 +100,7 @@ document.addEventListener(
   },
   { passive: false },
 );
+
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space") {
     e.preventDefault();
@@ -105,7 +108,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// --- GAME LOGIC ---
+// --- LAG-FREE GAME LOGIC ---
 function spawnObject() {
   if (!gameActive) return;
 
@@ -114,15 +117,19 @@ function spawnObject() {
   objElement.src = randomObject[0];
   objElement.classList.add("object");
 
-  objElement.style.left = `${gameArea.offsetWidth}px`;
-  objElement.style.top = `${Math.random() * (gameArea.offsetHeight - 50)}px`;
+  // Spawn 100px off-screen to the right so it never pops in suddenly
+  let startX = gameArea.offsetWidth + 100;
+  let startY = Math.random() * (gameArea.offsetHeight - 50);
 
+  // Use GPU Transforms instead of Top/Left for lag-free performance
+  objElement.style.transform = `translate(${startX}px, ${startY}px)`;
   gameArea.appendChild(objElement);
 
   activeObjects.push({
     el: objElement,
     value: randomObject[1],
-    x: gameArea.offsetWidth,
+    x: startX,
+    y: startY,
   });
 }
 
@@ -132,8 +139,8 @@ function gameLoop() {
   velocity += gravity;
   playerY += velocity;
 
-  if (playerY > gameArea.offsetHeight - player.offsetHeight) {
-    playerY = gameArea.offsetHeight - player.offsetHeight;
+  if (playerY > gameArea.offsetHeight - 60) {
+    playerY = gameArea.offsetHeight - 60;
     velocity = 0;
   }
   if (playerY < 0) {
@@ -141,25 +148,33 @@ function gameLoop() {
     velocity = 0;
   }
 
-  // Only apply physics to player if she hasn't blasted off yet
   if (gameActive) {
-    player.style.top = `${playerY}px`;
+    player.style.transform = `translateY(${playerY}px)`;
   }
+
+  // Pre-calculate player boundaries ONCE per frame (Massive CPU saver)
+  let pLeft = gameArea.offsetWidth * 0.1;
+  let pRight = pLeft + 60;
+  let pTop = playerY;
+  let pBottom = playerY + 60;
 
   for (let i = 0; i < activeObjects.length; i++) {
     let obj = activeObjects[i];
     obj.x -= 4;
-    obj.el.style.left = `${obj.x}px`;
+    obj.el.style.transform = `translate(${obj.x}px, ${obj.y}px)`;
 
-    const playerRect = player.getBoundingClientRect();
-    const objRect = obj.el.getBoundingClientRect();
+    // Lightning-fast Math Collision (No getBoundingClientRect lag!)
+    let oLeft = obj.x;
+    let oRight = obj.x + 45;
+    let oTop = obj.y;
+    let oBottom = obj.y + 45;
 
     if (
       gameActive &&
-      playerRect.left < objRect.right &&
-      playerRect.right > objRect.left &&
-      playerRect.top < objRect.bottom &&
-      playerRect.bottom > objRect.top
+      pLeft < oRight &&
+      pRight > oLeft &&
+      pTop < oBottom &&
+      pBottom > oTop
     ) {
       score += obj.value;
       scoreElement.textContent = `Score: ${score}`;
@@ -174,7 +189,7 @@ function gameLoop() {
       continue;
     }
 
-    if (obj.x < -50) {
+    if (obj.x < -100) {
       obj.el.remove();
       activeObjects.splice(i, 1);
       i--;
@@ -184,8 +199,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// --- AUDIO SYNC CHOREOGRAPHY (TAB-BUG PROOF) ---
-// These events trigger exactly when the audio reaches the specified seconds.
+// --- AUDIO SYNC CHOREOGRAPHY ---
 const choreography = [
   {
     time: 18,
@@ -241,10 +255,10 @@ const choreography = [
     action: () => {
       gameActive = false;
       clearInterval(spawnInterval);
-      player.style.transition = "all 1.5s ease-in";
-      player.style.left = "150vw";
-      player.style.top = "-20%";
-      player.style.transform = "rotate(45deg) scale(1.5)";
+
+      // Rocket Exit via Transform
+      player.style.transition = "transform 1.5s ease-in";
+      player.style.transform = `translate(150vw, -50vh) rotate(45deg) scale(1.5)`;
     },
   },
   {
@@ -292,11 +306,9 @@ const choreography = [
   },
 ];
 
-// This listens to the music playing and runs the game based on the song's timestamp
 backgroundMusic.addEventListener("timeupdate", () => {
   const currentTime = backgroundMusic.currentTime;
 
-  // Update the on-screen countdown timer
   if (gameActive) {
     let timeLeft = Math.ceil(68 - currentTime);
     if (timeLeft > 0) {
@@ -306,7 +318,6 @@ backgroundMusic.addEventListener("timeupdate", () => {
     }
   }
 
-  // Trigger events when the music reaches the right second
   choreography.forEach((event) => {
     if (!event.done && currentTime >= event.time) {
       event.done = true;
@@ -328,11 +339,10 @@ function startGame() {
   spawnInterval = setInterval(spawnObject, 800);
 }
 
-// --- TAB SWITCHING CLEANUP ---
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     clearInterval(spawnInterval);
-    backgroundMusic.pause(); // Because the logic is now tied to the music, pausing the music pauses the entire game timeline perfectly!
+    backgroundMusic.pause();
   } else {
     if (gameActive) {
       spawnInterval = setInterval(spawnObject, 800);
