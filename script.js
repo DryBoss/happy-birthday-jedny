@@ -33,15 +33,23 @@ let activeObjects = [];
 let spawnInterval;
 let reactionTimeout;
 
-// Physics
-let playerY = window.innerHeight / 2;
+// Physics & Screen Caching (THE MOBILE LAG FIX)
+let gameWidth = window.innerWidth;
+let gameHeight = window.innerHeight;
+
+// Update screen sizes only if they rotate their phone
+window.addEventListener("resize", () => {
+  gameWidth = window.innerWidth;
+  gameHeight = window.innerHeight;
+});
+
+let playerY = gameHeight / 2;
 let velocity = 0;
 const gravity = 0.4;
 const jumpStrength = -7;
 
 // --- FAILSAFE LOADING SCREEN ---
 window.addEventListener("load", () => {
-  // Set initial player position using GPU transform
   player.style.transform = `translateY(${playerY}px)`;
 
   let hasLoaded = false;
@@ -53,10 +61,10 @@ window.addEventListener("load", () => {
   }
 
   document.fonts.ready.then(finishLoading);
-  setTimeout(finishLoading, 2000); // 2-second failsafe
+  setTimeout(finishLoading, 2000);
 });
 
-// --- GAME ASSETS (Anti-Pop-in Fix) ---
+// --- GAME ASSETS ---
 const objects = [
   ["./medias/objects/beef.png", 10],
   ["./medias/objects/noodles.png", 10],
@@ -66,7 +74,6 @@ const objects = [
   ["./medias/objects/strawberry.png", -10],
 ];
 
-// Storing the image objects in an array prevents the browser from garbage-collecting them!
 const preloadedImages = [];
 objects.forEach((object) => {
   const img = new Image();
@@ -108,7 +115,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// --- LAG-FREE GAME LOGIC ---
+// --- MOBILE-OPTIMIZED GAME LOGIC ---
 function spawnObject() {
   if (!gameActive) return;
 
@@ -117,11 +124,10 @@ function spawnObject() {
   objElement.src = randomObject[0];
   objElement.classList.add("object");
 
-  // Spawn 100px off-screen to the right so it never pops in suddenly
-  let startX = gameArea.offsetWidth + 100;
-  let startY = Math.random() * (gameArea.offsetHeight - 50);
+  // Using cached screen sizes instead of asking the browser
+  let startX = gameWidth + 100;
+  let startY = Math.random() * (gameHeight - 50);
 
-  // Use GPU Transforms instead of Top/Left for lag-free performance
   objElement.style.transform = `translate(${startX}px, ${startY}px)`;
   gameArea.appendChild(objElement);
 
@@ -139,8 +145,9 @@ function gameLoop() {
   velocity += gravity;
   playerY += velocity;
 
-  if (playerY > gameArea.offsetHeight - 60) {
-    playerY = gameArea.offsetHeight - 60;
+  // Using cached gameHeight completely stops mobile lag
+  if (playerY > gameHeight - 60) {
+    playerY = gameHeight - 60;
     velocity = 0;
   }
   if (playerY < 0) {
@@ -152,8 +159,8 @@ function gameLoop() {
     player.style.transform = `translateY(${playerY}px)`;
   }
 
-  // Pre-calculate player boundaries ONCE per frame (Massive CPU saver)
-  let pLeft = gameArea.offsetWidth * 0.1;
+  // Pre-calculated with cached widths
+  let pLeft = gameWidth * 0.1;
   let pRight = pLeft + 60;
   let pTop = playerY;
   let pBottom = playerY + 60;
@@ -163,7 +170,6 @@ function gameLoop() {
     obj.x -= 4;
     obj.el.style.transform = `translate(${obj.x}px, ${obj.y}px)`;
 
-    // Lightning-fast Math Collision (No getBoundingClientRect lag!)
     let oLeft = obj.x;
     let oRight = obj.x + 45;
     let oTop = obj.y;
@@ -256,7 +262,6 @@ const choreography = [
       gameActive = false;
       clearInterval(spawnInterval);
 
-      // Rocket Exit via Transform
       player.style.transition = "transform 1.5s ease-in";
       player.style.transform = `translate(150vw, -50vh) rotate(45deg) scale(1.5)`;
     },
