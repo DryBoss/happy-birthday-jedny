@@ -4,12 +4,13 @@
   src: url("./medias/SuperShiny.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: swap; /* Tells the browser to show the fallback font immediately while SuperShiny downloads */
 }
 
 body {
   margin: 0;
   overflow: hidden;
+  /* Added chunky, playful fallback fonts just in case! */
   font-family:
     "SuperShiny", "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
   letter-spacing: 2px;
@@ -171,7 +172,7 @@ button:active {
   left: 10%;
   top: 0; /* Crucial for JS transforms */
   z-index: 5;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+  /* Drop-shadow removed here for mobile performance */
   will-change: transform; /* Hardware acceleration */
 }
 
@@ -184,7 +185,9 @@ button:active {
   transition: 250ms;
   width: 80px;
   z-index: 101;
-  filter: drop-shadow(-4px 4px 6px rgba(0, 0, 0, 0.15));
+  filter: drop-shadow(
+    -4px 4px 6px rgba(0, 0, 0, 0.15)
+  ); /* Fine to keep since it doesn't move constantly */
 }
 
 .object {
@@ -194,11 +197,11 @@ button:active {
   top: 0; /* Crucial for JS transforms */
   left: 0; /* Crucial for JS transforms */
   z-index: 4;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.1));
+  /* Drop-shadow removed here for mobile performance */
   will-change: transform; /* Hardware acceleration */
 }
 
-/* --- CLOUD BACKGROUND SETTINGS --- */
+/* --- CLOUD BACKGROUND SETTINGS (GPU ACCELERATED) --- */
 .clouds-container {
   position: absolute;
   top: 0;
@@ -217,7 +220,7 @@ button:active {
   width: 150px;
   height: 50px;
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.03);
-  will-change: left;
+  will-change: transform; /* Fixed: GPU accelerated */
 }
 
 .cloud::after,
@@ -244,36 +247,41 @@ button:active {
   right: 25px;
 }
 
+/* Animating clouds with Transform instead of Left to prevent layout thrashing */
 .cloud1 {
   top: 15%;
-  animation: floatClouds 25s linear infinite;
-  transform: scale(0.8);
+  left: 0;
+  --scale: 0.8;
   opacity: 0.8;
+  animation: floatClouds 25s linear infinite;
 }
 .cloud2 {
   top: 40%;
+  left: 0;
+  --scale: 1.2;
   animation: floatClouds 35s linear infinite;
-  transform: scale(1.2);
 }
 .cloud3 {
   top: 70%;
-  animation: floatClouds 20s linear infinite;
-  transform: scale(0.6);
+  left: 0;
+  --scale: 0.6;
   opacity: 0.6;
+  animation: floatClouds 20s linear infinite;
 }
 .cloud4 {
   top: 85%;
-  animation: floatClouds 40s linear infinite;
-  transform: scale(1);
+  left: 0;
+  --scale: 1;
   opacity: 0.9;
+  animation: floatClouds 40s linear infinite;
 }
 
 @keyframes floatClouds {
   0% {
-    left: 100%;
+    transform: translateX(100vw) scale(var(--scale));
   }
   100% {
-    left: -300px;
+    transform: translateX(-300px) scale(var(--scale));
   }
 }
 
@@ -373,11 +381,9 @@ button:active {
 .anim-pop {
   animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-
 .anim-slide {
   animation: slideUpFade 0.8s ease-out forwards;
 }
-
 .anim-cake {
   animation:
     popIn 0.8s ease forwards,

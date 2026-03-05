@@ -37,7 +37,6 @@ let reactionTimeout;
 let gameWidth = window.innerWidth;
 let gameHeight = window.innerHeight;
 
-// Update screen sizes only if they rotate their phone
 window.addEventListener("resize", () => {
   gameWidth = window.innerWidth;
   gameHeight = window.innerHeight;
@@ -124,7 +123,6 @@ function spawnObject() {
   objElement.src = randomObject[0];
   objElement.classList.add("object");
 
-  // Using cached screen sizes instead of asking the browser
   let startX = gameWidth + 100;
   let startY = Math.random() * (gameHeight - 50);
 
@@ -145,7 +143,6 @@ function gameLoop() {
   velocity += gravity;
   playerY += velocity;
 
-  // Using cached gameHeight completely stops mobile lag
   if (playerY > gameHeight - 60) {
     playerY = gameHeight - 60;
     velocity = 0;
@@ -159,7 +156,6 @@ function gameLoop() {
     player.style.transform = `translateY(${playerY}px)`;
   }
 
-  // Pre-calculated with cached widths
   let pLeft = gameWidth * 0.1;
   let pRight = pLeft + 60;
   let pTop = playerY;
@@ -311,13 +307,18 @@ const choreography = [
   },
 ];
 
+let lastTimeLeft = -1;
+
 backgroundMusic.addEventListener("timeupdate", () => {
   const currentTime = backgroundMusic.currentTime;
 
   if (gameActive) {
     let timeLeft = Math.ceil(68 - currentTime);
     if (timeLeft > 0) {
-      timerElement.innerHTML = `Party starts in<br>${timeLeft} seconds`;
+      if (timeLeft !== lastTimeLeft) {
+        timerElement.innerHTML = `Party starts in<br>${timeLeft} seconds`;
+        lastTimeLeft = timeLeft;
+      }
     } else {
       timerElement.style.display = "none";
     }
