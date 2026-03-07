@@ -174,9 +174,9 @@ function gameLoop() {
     obj.el.style.transform = `translate(${obj.x}px, ${obj.y}px)`;
 
     let oLeft = obj.x;
-    let oRight = obj.x + 45;
+    let oRight = obj.x + 35;
     let oTop = obj.y;
-    let oBottom = obj.y + 45;
+    let oBottom = obj.y + 35;
 
     if (
       gameActive &&
