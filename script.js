@@ -37,7 +37,6 @@ let reactionTimeout;
 let gameWidth = window.innerWidth;
 let gameHeight = window.innerHeight;
 
-// Update screen sizes only if they rotate their phone
 window.addEventListener("resize", () => {
   gameWidth = window.innerWidth;
   gameHeight = window.innerHeight;
@@ -61,21 +60,25 @@ window.addEventListener("load", () => {
   }
 
   document.fonts.ready.then(finishLoading);
-  setTimeout(finishLoading, 2000); // 2-second failsafe
+  setTimeout(finishLoading, 2000);
 });
 
-// --- GAME ASSETS (Images Removed) ---
+// --- GAME ASSETS ---
 const objects = [
-  // Value changes the color logic below (Positive = Good, Negative = Bad)
-  ["good", 10],
-  ["good", 10],
-  ["good", 10],
-  ["good", 5],
-  ["bad", -5],
-  ["bad", -10],
+  ["./medias/objects/beef.png", 10],
+  ["./medias/objects/noodles.png", 10],
+  ["./medias/objects/pizza.png", 10],
+  ["./medias/objects/fish.png", 5],
+  ["./medias/objects/burger.png", -5],
+  ["./medias/objects/strawberry.png", -10],
 ];
 
-// Anti-pop-in preloader loop removed because images are gone.
+const preloadedImages = [];
+objects.forEach((object) => {
+  const img = new Image();
+  img.src = object[0];
+  preloadedImages.push(img);
+});
 
 // --- EVENT LISTENERS ---
 startButton.addEventListener("click", () => {
@@ -111,37 +114,31 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// --- MOBILE-OPTIMIZED GAME LOGIC (Images Removed) ---
+// --- MOBILE-OPTIMIZED GAME LOGIC (Image Decode Tax Fix) ---
 function spawnObject() {
   if (!gameActive) return;
 
-  // Select a random object type (for scoring logic)
   let randomObject = objects[Math.floor(Math.random() * objects.length)];
 
-  // Create a styled DIV block instead of an IMG asset
+  // Creates a GPU-friendly DIV instead of a heavy IMG tag
   const objElement = document.createElement("div");
   objElement.classList.add("object");
 
-  // Define visual appearance via code instead of heavy asset download
-  objElement.style.borderRadius = "10px";
-  objElement.style.border = "2px solid rgba(0,0,0,0.1)";
-  objElement.style.boxShadow = "0 6px 10px rgba(0,0,0,0.1)";
+  // Paints the image onto the DIV via CSS
+  objElement.style.backgroundImage = `url(${randomObject[0]})`;
+  objElement.style.backgroundSize = "contain";
+  objElement.style.backgroundRepeat = "no-repeat";
+  objElement.style.backgroundPosition = "center";
 
-  // Color Logic: Green = Good, Red = Bad
-  objElement.style.backgroundColor =
-    randomObject[1] > 0 ? "#2ecc71" : "#e74c3c";
-
-  // Using cached screen sizes instead of asking the browser
   let startX = gameWidth + 100;
   let startY = Math.random() * (gameHeight - 50);
 
-  // Use GPU Transforms instead of Top/Left for lag-free performance
   objElement.style.transform = `translate(${startX}px, ${startY}px)`;
   gameArea.appendChild(objElement);
 
   activeObjects.push({
     el: objElement,
-    value: randomObject[1], // Store score value
+    value: randomObject[1],
     x: startX,
     y: startY,
   });
@@ -153,7 +150,6 @@ function gameLoop() {
   velocity += gravity;
   playerY += velocity;
 
-  // Using cached gameHeight completely stops mobile lag
   if (playerY > gameHeight - 60) {
     playerY = gameHeight - 60;
     velocity = 0;
@@ -167,7 +163,6 @@ function gameLoop() {
     player.style.transform = `translateY(${playerY}px)`;
   }
 
-  // Pre-calculated player boundaries ONCE per frame
   let pLeft = gameWidth * 0.1;
   let pRight = pLeft + 60;
   let pTop = playerY;
@@ -175,10 +170,9 @@ function gameLoop() {
 
   for (let i = 0; i < activeObjects.length; i++) {
     let obj = activeObjects[i];
-    obj.x -= 4; // Float speed
+    obj.x -= 4;
     obj.el.style.transform = `translate(${obj.x}px, ${obj.y}px)`;
 
-    // Math Collision (Instant calc)
     let oLeft = obj.x;
     let oRight = obj.x + 45;
     let oTop = obj.y;
@@ -191,23 +185,19 @@ function gameLoop() {
       pTop < oBottom &&
       pBottom > oTop
     ) {
-      // Handle Score update
       score += obj.value;
       scoreElement.textContent = `Score: ${score}`;
 
-      // Set reaction text (YUMMY for green, EWW for red)
       reaction.textContent = obj.value > 0 ? "YUMMY!" : "EWW!";
       clearTimeout(reactionTimeout);
       reactionTimeout = setTimeout(() => (reaction.textContent = ""), 500);
 
-      // Clean up DOM and array
       obj.el.remove();
       activeObjects.splice(i, 1);
       i--;
       continue;
     }
 
-    // Remove if off-screen (with buffer)
     if (obj.x < -100) {
       obj.el.remove();
       activeObjects.splice(i, 1);
@@ -218,7 +208,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// --- AUDIO SYNC CHOREOGRAPHY (TAB-BUG PROOF) ---
+// --- AUDIO SYNC CHOREOGRAPHY ---
 const choreography = [
   {
     time: 18,
@@ -275,9 +265,7 @@ const choreography = [
       gameActive = false;
       clearInterval(spawnInterval);
 
-      // Rocket Exit via Transform (Tab-bug proof)
       player.style.transition = "transform 1.5s ease-in";
-      // Blast way off to the right and top while scaling and rotating
       player.style.transform = `translate(150vw, -50vh) rotate(45deg) scale(1.5)`;
     },
   },
@@ -285,11 +273,9 @@ const choreography = [
     time: 77.5,
     done: false,
     action: () => {
-      // Clear remaining screen objects (DIVs)
       activeObjects.forEach((obj) => obj.el.remove());
       activeObjects = [];
       player.style.display = "none";
-
       confetti.start();
       titleDialog.style.display = "flex";
       titleDialog.classList.add("anim-pop");
@@ -328,13 +314,11 @@ const choreography = [
   },
 ];
 
-let lastTimeLeft = -1; // Mobile optimized timer caching
+let lastTimeLeft = -1;
 
-// This listens to the music playing and runs the game based on the song's timestamp
 backgroundMusic.addEventListener("timeupdate", () => {
   const currentTime = backgroundMusic.currentTime;
 
-  // Update the on-screen countdown timer (Domspam fixed)
   if (gameActive) {
     let timeLeft = Math.ceil(68 - currentTime);
     if (timeLeft > 0) {
@@ -347,7 +331,6 @@ backgroundMusic.addEventListener("timeupdate", () => {
     }
   }
 
-  // Trigger events when the music reaches the right second
   choreography.forEach((event) => {
     if (!event.done && currentTime >= event.time) {
       event.done = true;
@@ -369,7 +352,6 @@ function startGame() {
   spawnInterval = setInterval(spawnObject, 800);
 }
 
-// --- TAB SWITCHING CLEANUP ---
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     clearInterval(spawnInterval);
