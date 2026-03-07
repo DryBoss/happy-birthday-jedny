@@ -33,11 +33,11 @@ h4 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  opacity: 1; /* Bumped up to fully solid */
-  font-size: 4rem; /* Made it a little bigger! */
-  color: #ffffff; /* Pure white text */
-  -webkit-text-stroke: 3px #ff4081; /* Thick punchy pink outline */
-  text-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4); /* Stronger, darker shadow */
+  opacity: 0.6; /* Dropped down so it doesn't steal the show! */
+  font-size: 4rem;
+  color: #ffffff;
+  -webkit-text-stroke: 3px #ff4081;
+  text-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
   z-index: 10;
   pointer-events: none;
 }
